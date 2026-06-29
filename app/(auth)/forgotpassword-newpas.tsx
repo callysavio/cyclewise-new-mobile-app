@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import * as SecureStore from "expo-secure-store";
+import { getItem, removeItem } from "@/utils/storage";
 import React, { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
@@ -26,7 +26,7 @@ const ForgotPasswordNewPasswordScreen: React.FC = () => {
     try {
       setLoading(true);
       // Get temporary token
-      const token = await SecureStore.getItemAsync("RESET_ACCESS_TOKEN");
+      const token = await getItem("RESET_ACCESS_TOKEN");
       if (!token) throw new Error("Session expired. Please try again.");
 
       // Call backend
@@ -41,7 +41,7 @@ const ForgotPasswordNewPasswordScreen: React.FC = () => {
       );
 
       // Remove temp token
-      await SecureStore.deleteItemAsync("RESET_ACCESS_TOKEN");
+      await removeItem("RESET_ACCESS_TOKEN");
 
       alert("Password reset successfully!");
       router.replace("/(auth)/login");

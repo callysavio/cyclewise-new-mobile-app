@@ -1,5 +1,5 @@
 import { router, Stack } from "expo-router";
-import * as SecureStore from "expo-secure-store";
+import { setItem } from "@/utils/storage";
 import React, { useState } from "react";
 import { Text, View } from "react-native";
 
@@ -28,7 +28,7 @@ const ForgotPasswordEmailScreen: React.FC = () => {
       const resetToken = res.data?.data?.accessToken;
       if (!resetToken) throw new Error("Could not get reset token");
 
-      await SecureStore.setItemAsync("RESET_ACCESS_TOKEN", resetToken);
+      await setItem("RESET_ACCESS_TOKEN", resetToken);
 
       // Navigate to change password screen
       router.push("/(auth)/forgotpassword-newpas");

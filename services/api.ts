@@ -1,5 +1,5 @@
 import axios, { InternalAxiosRequestConfig } from "axios";
-import * as SecureStore from "expo-secure-store";
+import { getItem, setItem, removeItem } from "@/utils/storage";
 
 const API_URL = "https://cyclewise-backend.onrender.com/api/v1";
 
@@ -15,7 +15,7 @@ let accessTokenMemory: string | null = null;
  */
 export const setAccessToken = async (token: string) => {
   accessTokenMemory = token;
-  await SecureStore.setItemAsync(TOKEN_KEY, token);
+  await setItem(TOKEN_KEY, token);
 };
 
 /**
@@ -24,7 +24,7 @@ export const setAccessToken = async (token: string) => {
 export const getAccessToken = async (): Promise<string | null> => {
   if (accessTokenMemory) return accessTokenMemory;
 
-  const token = await SecureStore.getItemAsync(TOKEN_KEY);
+  const token = await getItem(TOKEN_KEY);
   accessTokenMemory = token;
   return token;
 };
@@ -34,7 +34,7 @@ export const getAccessToken = async (): Promise<string | null> => {
  */
 export const clearAccessToken = async () => {
   accessTokenMemory = null;
-  await SecureStore.deleteItemAsync(TOKEN_KEY);
+  await removeItem(TOKEN_KEY);
 };
 
 /**
@@ -42,6 +42,7 @@ export const clearAccessToken = async () => {
  */
 const api = axios.create({
   baseURL: API_URL,
+  timeout: 45000, // 45 seconds (Render sleep wake-up tolerance)
   headers: {
     "Content-Type": "application/json",
   },
@@ -59,7 +60,11 @@ api.interceptors.request.use(
     if (config.skipAuth) {
       // Only strip if the caller didn't explicitly set one for this request
       if (!callerProvidedAuth) {
-        delete config.headers.Authorization;
+        if (config.headers.delete) {
+          config.headers.delete("Authorization");
+        } else {
+          delete config.headers.Authorization;
+        }
       }
       return config;
     }
@@ -67,9 +72,17 @@ api.interceptors.request.use(
     const token = await getAccessToken();
 
     if (token && typeof token === "string" && token.length > 10) {
-      config.headers.Authorization = `Bearer ${token}`;
+      if (config.headers.set) {
+        config.headers.set("Authorization", `Bearer ${token}`);
+      } else {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     } else {
-      delete config.headers.Authorization;
+      if (config.headers.delete) {
+        config.headers.delete("Authorization");
+      } else {
+        delete config.headers.Authorization;
+      }
     }
 
     return config;
@@ -78,3 +91,4 @@ api.interceptors.request.use(
 );
 
 export default api;
+

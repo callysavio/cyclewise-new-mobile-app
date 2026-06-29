@@ -24,17 +24,20 @@ import {
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
-/* =====================================================
-   ROOT NAVIGATOR
-===================================================== */
-
 function RootNavigator() {
-  const { user, loading } = useAuth();
+  const { user, loading, hasCompletedOnboarding } = useAuth();
 
   if (loading) return null;
 
-  // ❌ NOT LOGGED IN → AUTH FLOW ONLY
+  // ❌ NOT LOGGED IN → AUTH OR ONBOARDING FLOW
   if (!user) {
+    if (!hasCompletedOnboarding) {
+      return (
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="onboarding/index" />
+        </Stack>
+      );
+    }
     return (
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />

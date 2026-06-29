@@ -1,6 +1,6 @@
 import { signUp } from "@/services/auth.service";
 import { SignUpPayload } from "@/services/types";
-import * as SecureStore from "expo-secure-store";
+import { setItem } from "@/utils/storage";
 
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -88,7 +88,7 @@ export default function SignupScreen() {
         throw new Error("Signup token missing from response");
       }
 
-      await SecureStore.setItemAsync("SIGNUP_ACCESS_TOKEN", signupToken);
+      await setItem("SIGNUP_ACCESS_TOKEN", signupToken);
 
       router.replace({
         pathname: "/(auth)/otpscreen",

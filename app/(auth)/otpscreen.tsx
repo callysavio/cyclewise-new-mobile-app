@@ -3,7 +3,7 @@ import { setAccessToken } from "@/services/api";
 import { resendOtp, verifyOtp } from "@/services/auth.service";
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import * as SecureStore from "expo-secure-store";
+import { removeItem } from "@/utils/storage";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -88,7 +88,7 @@ export default function OtpScreen() {
 
       if (!finalAccessToken) throw new Error("OTP verification failed");
 
-      await SecureStore.deleteItemAsync("SIGNUP_ACCESS_TOKEN");
+      await removeItem("SIGNUP_ACCESS_TOKEN");
       await setAccessToken(finalAccessToken);
       await authenticate(finalAccessToken);
 

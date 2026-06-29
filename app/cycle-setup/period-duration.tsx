@@ -1,5 +1,6 @@
 import { useCycleSetup } from "@/providers/CycleSetupContext";
 import { createCycle } from "@/services/cycle.service";
+import { useAuth } from "@/providers/AuthProviders";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -14,6 +15,7 @@ export default function PeriodDuration() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { state, reset } = useCycleSetup();
+  const { refreshProfile } = useAuth();
   const [duration, setDuration] = useState<number>(5);
   const [loading, setLoading] = useState(false);
 

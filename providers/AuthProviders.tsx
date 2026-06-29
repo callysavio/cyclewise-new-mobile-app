@@ -4,7 +4,7 @@ import {
   setAccessToken,
 } from "@/services/api"; // Added getAccessToken & setAccessToken
 import { getProfile } from "@/services/auth.service";
-import * as SecureStore from "expo-secure-store";
+import { getItem, setItem, removeItem } from "@/utils/storage";
 import React, {
   createContext,
   ReactNode,
@@ -29,6 +29,9 @@ type AuthContextType = {
   isAuthenticated: boolean;
   authenticate: (token: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+  hasCompletedOnboarding: boolean;
+  completeOnboarding: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -59,13 +62,18 @@ const normalizeUser = (raw: any): AuthUser => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
   /**
    * Restore session on app launch
    */
   const bootstrap = async () => {
     try {
-      // FIX: Use your native API utility wrapper to restore memory state
+      // Load onboarding status
+      const onboardingCompleted = await getItem("hasCompletedOnboarding");
+      setHasCompletedOnboarding(onboardingCompleted === "true");
+
+      // Use your native API utility wrapper to restore memory state
       const token = await getAccessToken();
 
       if (!token) {
@@ -101,11 +109,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   /**
+   * Refresh active profile details
+   */
+  const refreshProfile = async () => {
+    try {
+      const res = await getProfile();
+      setUser(normalizeUser(res.data.data));
+    } catch (error) {
+      console.log("Failed to refresh user profile:", error);
+    }
+  };
+
+  /**
+   * Mark onboarding as completed
+   */
+  const completeOnboarding = async () => {
+    await setItem("hasCompletedOnboarding", "true");
+    setHasCompletedOnboarding(true);
+  };
+
+  /**
    * Logout cleanup block
    */
   const logout = async () => {
     await clearAccessToken();
-    await SecureStore.deleteItemAsync("SIGNUP_ACCESS_TOKEN");
+    await removeItem("SIGNUP_ACCESS_TOKEN");
+    setUser(null);
   };
 
   return (
@@ -116,6 +145,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated: !!user,
         authenticate,
         logout,
+        refreshProfile,
+        hasCompletedOnboarding,
+        completeOnboarding,
       }}
     >
       {children}
@@ -130,3 +162,4 @@ export const useAuth = () => {
   }
   return ctx;
 };
+

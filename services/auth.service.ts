@@ -1,5 +1,5 @@
 import { LoginPayload, SignUpPayload } from "@/services/types";
-import * as SecureStore from "expo-secure-store";
+import { getItem } from "@/utils/storage";
 import api from "./api";
 
 /* ======================= PUBLIC ROUTES ======================= */
@@ -7,7 +7,7 @@ export const signUp = (payload: SignUpPayload) =>
   api.post("/auth/signup", payload, { skipAuth: true });
 
 export const verifyOtp = async (otp: string) => {
-  const signupToken = await SecureStore.getItemAsync("SIGNUP_ACCESS_TOKEN");
+  const signupToken = await getItem("SIGNUP_ACCESS_TOKEN");
   if (!signupToken) throw new Error("Signup token missing. Please sign up again.");
 
   return api.post(

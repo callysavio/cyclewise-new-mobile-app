@@ -1,6 +1,6 @@
 // app/onboarding/index.tsx
 import { useRouter } from 'expo-router';
-import * as SecureStore from "expo-secure-store";
+import { useAuth } from '@/providers/AuthProviders';
 import React, { useRef, useState } from 'react';
 import { Dimensions, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -36,6 +36,7 @@ const slides = [
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const { completeOnboarding } = useAuth();
   const flatListRef = useRef<FlatList>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -44,7 +45,7 @@ export default function OnboardingScreen() {
     flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
   } else {
     
-    await SecureStore.setItemAsync("hasCompletedOnboarding", "true");
+    await completeOnboarding();
 
     // Navigate to Signup screen
     router.replace("/(auth)/signup");
