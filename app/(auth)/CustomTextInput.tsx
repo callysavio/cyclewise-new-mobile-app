@@ -1,32 +1,30 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  KeyboardTypeOptions,
   Text,
   TextInput,
+  TextInputProps, // 1. Import the native props type
   TouchableOpacity,
   View,
 } from "react-native";
 import styles from "./styles";
 
-interface CustomTextInputProps {
+// 2. Extend TextInputProps so all standard input properties are supported
+interface CustomTextInputProps extends TextInputProps {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
-  keyboardType?: KeyboardTypeOptions;
-  secureTextEntry?: boolean;
-  placeholder?: string;
-  autoCapitalize?: "none" | "sentences" | "words" | "characters";
 }
 
 const CustomTextInput: React.FC<CustomTextInputProps> = ({
   label,
   value,
   onChangeText,
-  keyboardType = "default",
   secureTextEntry,
   placeholder,
-  autoCapitalize = "sentences",
+  placeholderTextColor = "#C7C7CC",
+  selectionColor = "#E5563D",
+  ...restProps // 3. Gather all other forwarded native props (returnKeyType, onSubmitEditing, etc.)
 }) => {
   const [passwordHidden, setPasswordHidden] = useState(true);
 
@@ -40,10 +38,9 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
           onChangeText={onChangeText}
           secureTextEntry={secureTextEntry ? passwordHidden : false}
           placeholder={placeholder}
-          placeholderTextColor="#C7C7CC"
-          keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize}
-          selectionColor="#E5563D"
+          placeholderTextColor={placeholderTextColor}
+          selectionColor={selectionColor}
+          {...restProps} // 4. Spread them cleanly onto the actual TextInput element
         />
         {secureTextEntry && (
           <TouchableOpacity

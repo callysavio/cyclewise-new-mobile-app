@@ -6,14 +6,15 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Device from "expo-device";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -43,8 +44,16 @@ export default function SignupScreen() {
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uiError, setUiError] = useState("");
+
+  // Input focus references for a smoother keyboard lifecycle flow
+  const lastNameRef = useRef<TextInput>(null);
+  const phoneRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
 
   const handleChange = (key: keyof SignupState, value: string) => {
+    setUiError("");
     setSignupState((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -52,12 +61,13 @@ export default function SignupScreen() {
     const { firstName, lastName, phone, email, password, dob } = signupState;
 
     if (!firstName || !lastName || !phone || !email || !password || !dob) {
-      Alert.alert("Missing fields", "Please fill in all required fields");
+      setUiError("Please fill in all fields to create an account.");
       return;
     }
 
     try {
       setLoading(true);
+      setUiError("");
 
       const payload: SignUpPayload = {
         deviceName: Device.modelName ?? "Unknown Device",
@@ -85,9 +95,8 @@ export default function SignupScreen() {
         params: { email: payload.email },
       });
     } catch (err: any) {
-      Alert.alert(
-        "Signup Error",
-        err?.response?.data?.message || "Signup failed",
+      setUiError(
+        err?.response?.data?.message || "Signup failed. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -116,19 +125,30 @@ export default function SignupScreen() {
 
           {/* Core Input Stack */}
           <View style={styles.formContainer}>
-            <CustomTextInput
-              label="First Name"
-              value={signupState.firstName}
-              onChangeText={(text) => handleChange("firstName", text)}
-              autoCapitalize="words"
-            />
-
-            <CustomTextInput
-              label="Last Name"
-              value={signupState.lastName}
-              onChangeText={(text) => handleChange("lastName", text)}
-              autoCapitalize="words"
-            />
+            {/* HORIZONTAL NAME ROW */}
+            <View style={localStyles.nameRow}>
+              <View style={localStyles.flexColumn}>
+                <CustomTextInput
+                  label="First Name"
+                  value={signupState.firstName}
+                  onChangeText={(text) => handleChange("firstName", text)}
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                  onSubmitEditing={() => lastNameRef.current?.focus()}
+                />
+              </View>
+              <View style={localStyles.flexColumn}>
+                <CustomTextInput
+                  label="Last Name"
+                  value={signupState.lastName}
+                  onChangeText={(text) => handleChange("lastName", text)}
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                  onSubmitEditing={() => phoneRef.current?.focus()}
+                  // Make sure your CustomTextInput passes dynamic forwardRefs or handles explicit wrapper focus
+                />
+              </View>
+            </View>
 
             <CustomTextInput
               label="Phone Number"
@@ -136,6 +156,8 @@ export default function SignupScreen() {
               placeholder="+234 801 234 5678"
               value={signupState.phone}
               onChangeText={(text) => handleChange("phone", text)}
+              returnKeyType="next"
+              onSubmitEditing={() => emailRef.current?.focus()}
             />
 
             <CustomTextInput
@@ -144,6 +166,8 @@ export default function SignupScreen() {
               value={signupState.email}
               onChangeText={(text) => handleChange("email", text)}
               autoCapitalize="none"
+              returnKeyType="next"
+              onSubmitEditing={() => passwordRef.current?.focus()}
             />
 
             <CustomTextInput
@@ -152,13 +176,15 @@ export default function SignupScreen() {
               value={signupState.password}
               onChangeText={(text) => handleChange("password", text)}
               autoCapitalize="none"
+              returnKeyType="done"
+              onSubmitEditing={() => setShowDatePicker(true)}
             />
 
             {/* Date Picker Component Form Layer */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Date of Birth</Text>
               <Pressable
-                style={styles.datePickerToggle}
+                style={localStyles.datePickerToggleCustom}
                 onPress={() => setShowDatePicker(true)}
               >
                 <Text
@@ -191,9 +217,17 @@ export default function SignupScreen() {
             />
           )}
 
+          {/* Inline UI Error Pinout Notification */}
+          {uiError ? (
+            <View style={localStyles.errorAlertContainer}>
+              <Ionicons name="alert-circle" size={16} color="#E5563D" />
+              <Text style={localStyles.errorAlertText}>{uiError}</Text>
+            </View>
+          ) : null}
+
           {/* Form Actions */}
           <CustomButton
-            title="Create Account"
+            title={loading ? "Creating account..." : "Create Account"}
             onPress={handleSignUp}
             loading={loading}
           />
@@ -212,3 +246,44 @@ export default function SignupScreen() {
     </KeyboardAvoidingView>
   );
 }
+
+const localStyles = StyleSheet.create({
+  nameRow: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+    marginBottom: 4,
+  },
+  flexColumn: {
+    flex: 1,
+  },
+  datePickerToggleCustom: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 48,
+    backgroundColor: "#FFFFFF",
+  },
+  errorAlertContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF5F4",
+    borderWidth: 1,
+    borderColor: "#FCA5A5",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
+    width: "100%",
+    gap: 6,
+  },
+  errorAlertText: {
+    color: "#D97706",
+    fontSize: 13,
+    fontFamily: "Lexend_500Medium",
+    flex: 1,
+  },
+});

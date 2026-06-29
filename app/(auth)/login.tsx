@@ -1,11 +1,13 @@
 import * as Device from "expo-device";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -14,6 +16,7 @@ import { useAuth } from "@/providers/AuthProviders";
 import { clearAccessToken } from "@/services/api";
 import { login } from "@/services/auth.service";
 import { LoginPayload } from "@/services/types";
+import { Ionicons } from "@expo/vector-icons";
 
 import CustomButton from "./CustomButton";
 import CustomTextInput from "./CustomTextInput";
@@ -39,9 +42,17 @@ export default function LoginScreen() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [uiError, setUiError] = useState("");
   const [emailVerificationRequired, setEmailVerificationRequired] =
     useState(false);
+
+  // Focus pointer for keyboard traversal tracking
+  const passwordInputRef = useRef<TextInput>(null);
+
+  const handleInputChange = (key: keyof LoginState, value: string) => {
+    setUiError(""); // Clear layout errors immediately as the user writes
+    setState((prev) => ({ ...prev, [key]: value }));
+  };
 
   /* =======================
      HANDLER
@@ -49,14 +60,14 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     if (loading) return;
 
-    if (!state.email || !state.password) {
-      setError("Email and password are required");
+    if (!state.email.trim() || !state.password) {
+      setUiError("Please enter both your email address and password.");
       return;
     }
 
     try {
       setLoading(true);
-      setError("");
+      setUiError("");
       setEmailVerificationRequired(false);
 
       await clearAccessToken();
@@ -73,26 +84,30 @@ export default function LoginScreen() {
 
       if (!accessToken) {
         console.log("LOGIN ERROR: Token missing", res.data);
-        setError("Something went wrong while logging in. Please try again.");
+        setUiError(
+          "An authentication parsing error occurred. Please try again.",
+        );
         return;
       }
 
       await authenticate(accessToken);
       router.replace("/");
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message || "Invalid email or password";
+      // Differentiate between explicit credentials failures and Render backend sleeping warmups
+      const message = err?.response
+        ? err.response.data?.message || "Invalid email or password."
+        : "Network error: Server is warming up. Please try again in a moment.";
 
       if (
         typeof message === "string" &&
         message.toLowerCase().includes("email verification required")
       ) {
         setEmailVerificationRequired(true);
-        setError("");
+        setUiError("");
         return;
       }
 
-      setError(message);
+      setUiError(message);
     } finally {
       setLoading(false);
     }
@@ -115,6 +130,7 @@ export default function LoginScreen() {
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scrollContainer}
       >
         <View style={styles.innerContainer}>
@@ -139,32 +155,55 @@ export default function LoginScreen() {
             <CustomTextInput
               label="Email address"
               value={state.email}
-              onChangeText={(text) =>
-                setState((prev) => ({ ...prev, email: text }))
-              }
+              onChangeText={(text) => handleInputChange("email", text)}
               keyboardType="email-address"
+              autoCapitalize="none"
+              returnKeyType="next"
+              onSubmitEditing={() => passwordInputRef.current?.focus()}
             />
 
             <CustomTextInput
               label="Password"
               value={state.password}
-              onChangeText={(text) =>
-                setState((prev) => ({ ...prev, password: text }))
-              }
+              onChangeText={(text) => handleInputChange("password", text)}
               secureTextEntry
+              autoCapitalize="none"
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
             />
 
             {/* Contextual Placement: Forgot Password directly links to input field context */}
             <TouchableOpacity
               onPress={() => router.push("/forgotpassword")}
               style={styles.forgotPasswordLink}
+              activeOpacity={0.7}
             >
               <Text style={styles.linkText}>Forgot your password?</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Error Message Pinout */}
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {/* Structured Visual Error Banner Block */}
+          {uiError ? (
+            <View style={localStyles.errorAlertContainer}>
+              <Ionicons name="alert-circle" size={16} color="#E5563D" />
+              <Text style={localStyles.errorAlertText}>{uiError}</Text>
+            </View>
+          ) : null}
+
+          {/* Verification Warning Interventions */}
+          {emailVerificationRequired && (
+            <TouchableOpacity
+              onPress={handleVerifyOtp}
+              style={localStyles.verificationInlineCard}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="mail-unread-outline" size={18} color="#E5563D" />
+              <Text style={localStyles.verificationCardText}>
+                Email not verified yet.{" "}
+                <Text style={localStyles.verifyHighlight}>Verify now</Text>
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {/* Action Callouts */}
           <CustomButton
@@ -173,23 +212,11 @@ export default function LoginScreen() {
             loading={loading}
           />
 
-          {/* Verification Warning Interventions */}
-          {emailVerificationRequired && (
-            <TouchableOpacity
-              onPress={handleVerifyOtp}
-              style={styles.verificationContainer}
-            >
-              <Text style={styles.verificationText}>
-                Email not verified?{" "}
-                <Text style={styles.verifyNowHighlight}>Verify now</Text>
-              </Text>
-            </TouchableOpacity>
-          )}
-
           {/* Account Creation Footer */}
           <TouchableOpacity
             onPress={() => router.push("/(auth)/signup")}
             style={styles.signupFooterClickable}
+            activeOpacity={0.7}
           >
             <Text style={styles.signupFooterText}>
               New to CycleWise?{" "}
@@ -203,3 +230,49 @@ export default function LoginScreen() {
     </KeyboardAvoidingView>
   );
 }
+
+/* =======================
+   LOCAL UX STYLES
+======================= */
+const localStyles = StyleSheet.create({
+  errorAlertContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF5F4",
+    borderWidth: 1,
+    borderColor: "#FCA5A5",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    width: "100%",
+    gap: 8,
+  },
+  errorAlertText: {
+    color: "#E5563D",
+    fontSize: 13,
+    fontFamily: "Lexend_500Medium",
+    flex: 1,
+  },
+  verificationInlineCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFBEB",
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    width: "100%",
+    gap: 8,
+  },
+  verificationCardText: {
+    color: "#D97706",
+    fontSize: 13,
+    fontFamily: "Lexend_500Medium",
+    flex: 1,
+  },
+  verifyHighlight: {
+    fontFamily: "Lexend_600SemiBold",
+    textDecorationLine: "underline",
+  },
+});
