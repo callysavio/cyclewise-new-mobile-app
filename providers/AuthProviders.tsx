@@ -1,27 +1,25 @@
-import * as SecureStore from "expo-secure-store";
-
-import { clearAccessToken, setAccessToken } from "@/services/api";
-
+import {
+  clearAccessToken,
+  getAccessToken,
+  setAccessToken,
+} from "@/services/api"; // Added getAccessToken & setAccessToken
 import { getProfile } from "@/services/auth.service";
-import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
-
-/* =========================
-   TYPES
-========================= */
+import * as SecureStore from "expo-secure-store";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 export type AuthUser = {
   id?: string;
   email?: string;
   fullName?: string;
-
-  // verification flags
   emailVerified: boolean;
   isOtpVerified: boolean;
-
-  // onboarding
   cycleSetupCompleted: boolean;
-
-  // raw backend passthrough
   [key: string]: any;
 };
 
@@ -33,15 +31,7 @@ type AuthContextType = {
   logout: () => Promise<void>;
 };
 
-/* =========================
-   CONTEXT
-========================= */
-
 const AuthContext = createContext<AuthContextType | null>(null);
-
-/* =========================
-   NORMALIZER
-========================= */
 
 const normalizeUser = (raw: any): AuthUser => {
   if (!raw) {
@@ -66,10 +56,6 @@ const normalizeUser = (raw: any): AuthUser => {
   };
 };
 
-/* =========================
-   PROVIDER
-========================= */
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,30 +64,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    * Restore session on app launch
    */
   const bootstrap = async () => {
-  try {
-    const token = await SecureStore.getItemAsync("accessToken");
+    try {
+      // FIX: Use your native API utility wrapper to restore memory state
+      const token = await getAccessToken();
 
-    if (!token) {
+      if (!token) {
+        setUser(null);
+        return;
+      }
+
+      const res = await getProfile();
+      setUser(normalizeUser(res.data.data));
+    } catch (error) {
+      console.log("Bootstrap restoration failed:", error);
+      await clearAccessToken();
       setUser(null);
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    const res = await getProfile();
-    setUser(normalizeUser(res.data.data));
-  } catch {
-    await clearAccessToken();
-    setUser(null);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     bootstrap();
   }, []);
 
   /**
-   * Called after login / OTP verification
+   * Called after login / OTP verification completed successfully
    */
   const authenticate = async (token: string) => {
     // Save token to memory + SecureStore
@@ -113,14 +101,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   /**
-   * Logout
+   * Logout cleanup block
    */
   const logout = async () => {
-    // Clear token from memory + SecureStore
     await clearAccessToken();
-      await SecureStore.deleteItemAsync("SIGNUP_ACCESS_TOKEN");
-
-    setUser(null);
+    await SecureStore.deleteItemAsync("SIGNUP_ACCESS_TOKEN");
   };
 
   return (
@@ -137,10 +122,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     </AuthContext.Provider>
   );
 };
-
-/* =========================
-   HOOK
-========================= */
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);

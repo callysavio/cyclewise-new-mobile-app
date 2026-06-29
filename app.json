@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.copyninja.cycle_wise"
+      "bundleIdentifier": "com.copyninja.cycle-wise"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +21,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.copyninja.cycle_wise"
+      "package": "com.copyninja.cycle-wise",
+      "usesCleartextTraffic": true
     },
     "web": {
       "output": "static",
