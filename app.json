@@ -21,8 +21,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.copyninja.cycle_wise",
-      "usesCleartextTraffic": true
+      "package": "com.bcloudtechnologies.cyclewise"
     },
     "web": {
       "output": "static",
