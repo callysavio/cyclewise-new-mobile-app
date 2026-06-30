@@ -32,8 +32,9 @@ const ForgotPasswordNewPasswordScreen: React.FC = () => {
       // Call backend
       await api.post(
         "/auth/change-password",
-        { password: newPass },
+        { newPassword: newPass },
         {
+          skipAuth: true,
           headers: {
             Authorization: `Bearer ${token}`,
           },

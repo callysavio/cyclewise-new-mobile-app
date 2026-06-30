@@ -47,8 +47,8 @@ export default function OnboardingScreen() {
     
     await completeOnboarding();
 
-    // Navigate to Signup screen
-    router.replace("/(auth)/signup");
+    // Send first-time users into the login flow before home
+    router.replace("/(auth)/login");
   }
 };
 

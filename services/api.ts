@@ -69,6 +69,12 @@ api.interceptors.request.use(
       return config;
     }
 
+    // Respect explicit bearer tokens supplied by specialized flows such as
+    // password reset or OTP verification.
+    if (callerProvidedAuth) {
+      return config;
+    }
+
     const token = await getAccessToken();
 
     if (token && typeof token === "string" && token.length > 10) {
@@ -91,4 +97,3 @@ api.interceptors.request.use(
 );
 
 export default api;
-
