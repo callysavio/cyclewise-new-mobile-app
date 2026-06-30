@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { Animated, Dimensions, Text, TouchableOpacity } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -16,16 +16,30 @@ export default function NumberPicker({ min, max, initial = min, onChange }: Prop
   const scrollX = useRef(new Animated.Value(0)).current;
   const ref = useRef<any>(null);
 
-  // 👉 FIX: use scrollToOffset(), NOT scrollTo()
+  const syncValueFromOffset = useCallback(
+    (offset: number) => {
+      const index = Math.min(
+        Math.max(Math.round(offset / ITEM_SIZE), 0),
+        numbers.length - 1,
+      );
+      const selectedValue = numbers[index];
+      if (selectedValue !== undefined) {
+        onChange?.(selectedValue);
+      }
+    },
+    [numbers, onChange],
+  );
+
   useEffect(() => {
     const idx = numbers.indexOf(initial);
     if (idx >= 0) {
       setTimeout(() => {
         const offset = idx * ITEM_SIZE;
         ref.current?.scrollToOffset({ offset, animated: true });
+        onChange?.(initial);
       }, 50);
     }
-  }, []);
+  }, [initial, numbers, onChange]);
 
   return (
     <Animated.FlatList
@@ -44,6 +58,9 @@ export default function NumberPicker({ min, max, initial = min, onChange }: Prop
         [{ nativeEvent: { contentOffset: { x: scrollX } } }],
         { useNativeDriver: false }
       )}
+      onMomentumScrollEnd={(event) =>
+        syncValueFromOffset(event.nativeEvent.contentOffset.x)
+      }
       scrollEventThrottle={16}
       renderItem={({ item, index }) => {
         const inputRange = [

@@ -1,6 +1,4 @@
-import { Dimensions, StyleSheet } from "react-native";
-
-const { width } = Dimensions.get("window");
+import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
   // Main structural containers
@@ -18,6 +16,13 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 450, // Limits container spread on iPads or wider desktop views
     alignSelf: "center",
+  },
+  screenContent: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+    backgroundColor: "#FFFFFF",
   },
 
   // Brand/Identity system

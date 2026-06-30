@@ -3,7 +3,7 @@ import { setAccessToken } from "@/services/api";
 import { resendOtp, verifyOtp } from "@/services/auth.service";
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { removeItem } from "@/utils/storage";
+import { removeItem, setItem } from "@/utils/storage";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -117,7 +117,7 @@ export default function OtpScreen() {
 
       if (!newToken) throw new Error("Failed to get new token");
 
-      await SecureStore.setItemAsync("SIGNUP_ACCESS_TOKEN", newToken);
+      await setItem("SIGNUP_ACCESS_TOKEN", newToken);
       setTimer(OTP_EXPIRY);
 
       Alert.alert("OTP Sent", "A new OTP has been sent to your email.");

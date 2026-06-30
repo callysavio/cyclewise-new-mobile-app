@@ -341,7 +341,7 @@ const CycleSetup: React.FC<{ onDone?: () => void; onSkip?: () => void }> = ({ on
 
         {step === "summary" && (
           <>
-            <Text style={styles.questionTitle}>You're all set</Text>
+            <Text style={styles.questionTitle}>You&apos;re all set</Text>
 
             <View style={styles.summaryCard}>
               <Text style={styles.summaryLabel}>Last period start</Text>

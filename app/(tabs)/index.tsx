@@ -149,10 +149,11 @@ const HomeScreen: React.FC = () => {
         setCycleSummary(cycleData);
         setInsights(insightsData);
 
-        const cycleId = summaryData?.cycleId || "6a3eb5725edb99cd00cdb686";
-        const oddsData = await getPregnancyOdds(cycleId, todayFormatted).catch(
-          () => null,
-        );
+        const oddsData = summaryData?.cycleId
+          ? await getPregnancyOdds(summaryData.cycleId, todayFormatted).catch(
+              () => null,
+            )
+          : null;
         setPregnancyOdds(oddsData);
       } catch (error) {
         console.error("Dashboard loading error:", error);

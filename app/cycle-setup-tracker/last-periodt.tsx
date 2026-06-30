@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import moment from "moment";
 import React, { useMemo, useState } from "react";
 import {
-  Dimensions,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -13,12 +12,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import styles from "./styles";
 
-const { width } = Dimensions.get("window");
-
 export default function LastPeriodStart() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { state, setState } = useCycleSetup();
+  const { setState } = useCycleSetup();
 
   // Local cycle setup state (in real app persist/send to backend)
   const [selectedDate, setSelectedDate] = useState<string | null>(null);

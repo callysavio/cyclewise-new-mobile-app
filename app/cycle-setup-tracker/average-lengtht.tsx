@@ -1,9 +1,8 @@
 import { useCycleSetup } from "@/providers/CycleSetupContext";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Dimensions,
   Text,
   TouchableOpacity,
   View
@@ -12,16 +11,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import NumberPicker from "./components/number-pick";
 import styles from "./styles";
 
-const { width } = Dimensions.get("window");
-
 export default function AverageLength() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams();
-  const lastPeriodStart = (params as any)?.lastPeriodStart || null;
-  const { state, setState } = useCycleSetup();
-
-
+  const { setState } = useCycleSetup();
   const [selected, setSelected] = useState<number>(25);
 
  const onNext = () => {
@@ -68,5 +61,4 @@ export default function AverageLength() {
     </View>
   );
 }
-
 

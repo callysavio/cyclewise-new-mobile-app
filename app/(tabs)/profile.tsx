@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuth } from "@/providers/AuthProviders";
 
@@ -58,7 +57,6 @@ interface SettingsSwitchProps {
    SCREEN
 ======================= */
 const SettingsScreen: React.FC = () => {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user, logout } = useAuth();
 

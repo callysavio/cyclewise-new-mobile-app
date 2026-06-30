@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import moment from "moment";
 import React, { useMemo, useState } from "react";
 import {
-  Dimensions,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -15,12 +14,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomButton from "../(auth)/CustomButton"; // Reusing your standardized action system
 import styles from "./styles";
 
-const { width } = Dimensions.get("window");
-
 export default function LastPeriodStart() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { state, setState } = useCycleSetup();
+  const { setState } = useCycleSetup();
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
