@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.copyninja.cycle-wise"
+      "bundleIdentifier": "com.bcloudtechnologies.cyclewise"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,18 +21,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "versionCode": 1,
-      "permissions": [
-        "INTERNET",
-        "ACCESS_NETWORK_STATE",
-        "CAMERA",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
-      ],
+      "permissions": ["INTERNET", "ACCESS_NETWORK_STATE", "CAMERA"],
       "edgeToEdgeEnabled": true,
       "package": "com.bcloudtechnologies.cyclewise"
     },
@@ -74,21 +63,14 @@
         }
       ],
       "expo-secure-store",
-      "expo-web-browser",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "usesCleartextTraffic": true
-          }
-        }
-      ]
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
     "extra": {
+      "apiUrl": "https://cyclewise-backend.onrender.com/api/v1",
       "router": {},
       "eas": {
         "projectId": "ab43b155-51b5-4b53-bd54-3ba9aefecd9b"
